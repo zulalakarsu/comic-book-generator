@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Comic Story Generator
 
-## Getting Started
+## Overview
+The Comic Story Generator is a web application that allows users to create a 3-panel comic story about a cat's adventure. The model was trained on images of a cat called 'Pumpkin'. Users can input a prompt, and the application utilizes OpenAI's GPT-4 model to generate the comic story, which is then illustrated using the Replicate API.
 
-First, run the development server:
+<img width="1041" alt="Image" src="https://github.com/user-attachments/assets/4f66f80f-b47d-4365-9f62-513109cef572" />
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
+- User-friendly interface for inputting prompts.
+- Generates a structured comic story in JSON format.
+- Automatically creates images for each panel using AI.
+- Displays the generated comic story with images.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technologies Used
+- **Next.js**: A React framework for building server-side rendered applications.
+- **OpenAI API**: For generating comic story content.
+- **Replicate API**: For generating images based on the prompts.
+- **TypeScript**: For type safety and better development experience.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/comic-story-generator.git
+   cd comic-story-generator
+   ```
 
-## Learn More
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add your API keys:
+   ```plaintext
+   OPENAI_API_KEY=your_openai_api_key
+   REPLICATE_API_TOKEN=your_replicate_api_token
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Open your browser and navigate to `http://localhost:3000`.
 
-## Deploy on Vercel
+## Usage
+- Enter a short prompt in the input area (e.g., "adventure on a boat").
+- Click the submit button to generate the comic story.
+- The application will display the generated comic panels along with their captions.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+- [OpenAI](https://openai.com/) for providing the GPT-4 model.
+- [Replicate](https://replicate.com/) for the image generation API.

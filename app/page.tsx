@@ -1,101 +1,142 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
+
+interface ImageUrl {
+  url: string;
+  caption: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [prompt, setPrompt] = useState('');
+  const [images, setImages] = useState<ImageUrl[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isImagesLoaded, setIsImagesLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const generateComic = async () => {
+    if (!prompt.trim()) {
+      setError('Please enter a prompt first');
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+    setIsImagesLoaded(false);
+    
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_prompt: prompt })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate comic');
+      }
+
+      if (!data.img_urls || !Array.isArray(data.img_urls)) {
+        throw new Error('Invalid response format');
+      }
+
+      // Preload images
+      const preloadResult = await preloadImages(data.img_urls);
+      if (!preloadResult) {
+        throw new Error('Failed to load one or more images');
+      }
+      setImages(data.img_urls);
+      setIsImagesLoaded(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setImages([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const preloadImages = async (images: ImageUrl[]) => {
+    try {
+      const imagePromises = images.map((img) => {
+        return new Promise<boolean>((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(true);
+          image.onerror = () => reject(new Error(`Failed to load image: ${img.url}`));
+          image.src = img.url;
+        });
+      });
+
+      await Promise.all(imagePromises);
+      return true;
+    } catch (err) {
+      console.error('Image loading error:', err);
+      return false;
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-100 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          AI Comic Book
+        </h1>
+        <p className="text-lg text-center text-gray-700 mb-8">
+          Transform your ideas into comic stories about cat Pumpkin!
+        </p>
+        
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8 max-w-2xl mx-auto">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-2xl mx-auto">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter a short prompt (e.g. adventure on a boat)"
+            className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none mb-4 text-black"
+          />
+          <button 
+            onClick={generateComic}
+            disabled={isLoading}
+            className="w-full bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 transition duration-200 disabled:opacity-50"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {isLoading ? 'Generating Comic...' : 'Generate Comic'}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Creating your comic panels...</p>
+          </div>
+        )}
+
+        {!isLoading && images && images.length > 0 && isImagesLoaded && (
+          <div className="bg-white p-8 rounded-xl shadow-xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 opacity-0 animate-fade-in">
+              {images.map((image, index) => (
+                <div key={index} className="flex flex-col">
+                  <div className="relative aspect-square border-4 border-gray-900 rounded-lg shadow-xl overflow-hidden bg-white">
+                    <img 
+                      src={image.url} 
+                      alt={`Panel ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="mt-4 bg-yellow-100 p-4 rounded-lg border-2 border-gray-900 shadow-md">
+                    <p className="text-gray-900 text-center text-base font-medium">
+                      {image.caption}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }

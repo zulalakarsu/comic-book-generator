@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add any additional global styles here */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -18,4 +20,18 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  background-color: #f9fafb; /* Light background similar to the yellow design */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in forwards;
 }
