@@ -15,10 +15,6 @@ interface ComicPanel {
   caption: string;
 }
 
-interface ComicStory {
-  comics: ComicPanel[];
-}
-
 export async function POST(req: Request) {
   try {
     const { user_prompt } = await req.json();
@@ -61,7 +57,7 @@ export async function POST(req: Request) {
     let comicStory;
     try {
       comicStory = JSON.parse(content);
-    } catch (e) {
+    } catch {
       throw new Error("Invalid JSON response from OpenAI");
     }
 
