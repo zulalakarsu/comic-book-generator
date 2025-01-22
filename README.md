@@ -18,6 +18,7 @@ link to project: https://comic-book-beta.vercel.app/
 - **OpenAI API**: For generating comic story content.
 - **Replicate API**: For generating images based on the prompts.
 - **TypeScript**: For type safety and better development experience.
+- Model used: https://replicate.com/sundai-club/pumkino
 
 ## Installation
 
