@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server';
-import Replicate from "replicate";
 import OpenAI from 'openai';
 import { generateImages, ComicPanel } from "../utils";
 
 const openai = new OpenAI({
   apiKey: process.env.GITHUB_TOKEN,
   baseURL: "https://models.inference.ai.azure.com",
-});
-
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
 });
 
 interface OpenAIResponse {
