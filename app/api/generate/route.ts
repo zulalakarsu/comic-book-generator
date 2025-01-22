@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     try {
       comicStory = JSON.parse(content);
       console.log("Comic Story:", comicStory);
-    } catch (err) {
+    } catch {
       console.error('Invalid JSON:', content);
       throw new Error("Invalid JSON response from OpenAI");
     }
@@ -86,8 +86,8 @@ export async function POST(req: Request) {
           url: String(output[0]),  // Ensure URL is a string
           caption: panel.caption
         });
-      } catch (err) {
-        throw new Error(`Failed to generate image: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      } catch {
+        throw new Error("Failed to generate image");
       }
     }
     
