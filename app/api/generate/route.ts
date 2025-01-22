@@ -26,8 +26,6 @@ interface OpenAIResponse {
   }>;
 }
 
-interface ReplicateResponse extends Array<string> {}
-
 async function fetchWithRetry<T>(fetchFunction: () => Promise<T>, retries: number = 3): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {
@@ -59,24 +57,21 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: `Create a 3-panel comic story about a cat's adventure. For each panel, provide:
-            1. An image generation prompt that includes 'PUMKI the cat' and ends with 'cartoonish style, warm colors'
-            2. A caption that refers to the cat as 'Pumpkino'
-
-            Format the output as JSON with this structure:
+          content: `You are a JSON generator. Return ONLY a valid JSON object with exactly 3 panels, using this structure:
             {
-                "comics": [
-                    {
-                        "prompt": "Image generation prompt here",
-                        "caption": "Caption text here"
-                    }
-                ]
-            }`
+              "comics": [
+                {
+                  "prompt": "PUMKI the cat [scene description] cartoonish style, warm colors",
+                  "caption": "Pumpkino [action description]"
+                }
+              ]
+            }
+            Do not include any additional text, markdown, or explanation.`
         },
         { role: "user", content: user_prompt }
       ],
-      temperature: 0.7,
-      max_tokens: 1000,
+      temperature: 0.5,
+      max_tokens: 1000
     }));
 
     const content = response.choices[0]?.message?.content ?? null;
@@ -90,7 +85,7 @@ export async function POST(req: Request) {
     try {
       comicStory = JSON.parse(content.trim());
       console.log("Parsed Comic Story:", comicStory);
-    } catch (err: unknown) {
+    } catch {
       console.error('Failed to parse JSON. Raw content:', content);
       throw new Error('Invalid JSON response from OpenAI');
     }
@@ -118,11 +113,8 @@ export async function POST(req: Request) {
           url: String(output[0]),
           caption: panel.caption
         });
-      } catch (err: unknown) {
-        console.error('Error generating image:', err);
-        if (err instanceof Error) {
-          console.error('Error details:', err.message);
-        }
+      } catch (error: unknown) {
+        console.error('Error generating image:', error);
         throw new Error("Failed to generate image");
       }
     }

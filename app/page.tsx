@@ -8,6 +8,7 @@ interface ImageUrl {
 }
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [images, setImages] = useState<ImageUrl[] | null>(null);
@@ -16,6 +17,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     setIsClient(true);
   }, []);
 
@@ -80,23 +82,12 @@ export default function Home() {
     }
   };
 
-  if (!isClient) {
-    return (
-      <main className="min-h-screen bg-gray-100 py-8 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-center text-orange-500 mb-4 bg-yellow-200 p-2 rounded-lg shadow-md">
-            AI Comic Book
-          </h1>
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          </div>
-        </div>
-      </main>
-    );
+  if (!mounted) {
+    return null;
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 py-8 px-4">
+    <main className="min-h-screen py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-5xl font-bold text-center text-orange-500 mb-4">
           AI Comic Book
