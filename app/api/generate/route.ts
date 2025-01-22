@@ -24,10 +24,10 @@ interface OpenAIResponse {
 }
 
 interface ReplicateResponse {
-  [key: string]: any;
+  [key: string]: string[]; // Adjust this based on the actual structure of the Replicate response
 }
 
-async function fetchWithRetry(fetchFunction: () => Promise<any>, retries: number = 3): Promise<any> {
+async function fetchWithRetry<T>(fetchFunction: () => Promise<T>, retries: number = 3): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchFunction();
@@ -83,12 +83,15 @@ export async function POST(req: Request) {
     try {
       comicStory = JSON.parse(content);
       console.log("Comic Story:", comicStory);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Invalid JSON response from OpenAI:', content);
+      if (err instanceof Error) {
+        console.error('Error details:', err.message);
+      }
       throw new Error('Invalid JSON response');
     }
 
-    const img_urls = [];
+    const img_urls: { url: string; caption: string }[] = [];
 
     for (const panel of comicStory.comics) {
       try {
@@ -111,8 +114,11 @@ export async function POST(req: Request) {
           url: String(output[0]),
           caption: panel.caption
         });
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Error generating image:', err);
+        if (err instanceof Error) {
+          console.error('Error details:', err.message);
+        }
         throw new Error("Failed to generate image");
       }
     }
