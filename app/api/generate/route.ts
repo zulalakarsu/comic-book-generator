@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       throw new Error("No content received from OpenAI");
     }
     
-    let comicStory;
+    let comicStory: { comics: ComicPanel[] };
     try {
       comicStory = JSON.parse(content);
     } catch {

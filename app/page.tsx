@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ImageUrl {
   url: string;
@@ -8,11 +8,16 @@ interface ImageUrl {
 }
 
 export default function Home() {
+  const [isClient, setIsClient] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [images, setImages] = useState<ImageUrl[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isImagesLoaded, setIsImagesLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const generateComic = async () => {
     if (!prompt.trim()) {
@@ -60,7 +65,7 @@ export default function Home() {
     try {
       const imagePromises = images.map((img) => {
         return new Promise<boolean>((resolve, reject) => {
-          const image = new Image();
+          const image = new window.Image();
           image.onload = () => resolve(true);
           image.onerror = () => reject(new Error(`Failed to load image: ${img.url}`));
           image.src = img.url;
@@ -75,14 +80,29 @@ export default function Home() {
     }
   };
 
+  if (!isClient) {
+    return (
+      <main className="min-h-screen bg-gray-100 py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-bold text-center text-orange-500 mb-4 bg-yellow-200 p-2 rounded-lg shadow-md">
+            AI Comic Book
+          </h1>
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-gray-900 mb-4">
+        <h1 className="text-5xl font-bold text-center text-orange-500 mb-4">
           AI Comic Book
         </h1>
         <p className="text-lg text-center text-gray-700 mb-8">
-          Transform your ideas into comic stories about cat Pumpkin!
+          Transform your ideas into comic stories about a Scottish Fold cat named Pumpkino!
         </p>
         
         {error && (
@@ -116,16 +136,18 @@ export default function Home() {
 
         {!isLoading && images && images.length > 0 && isImagesLoaded && (
           <div className="bg-white p-8 rounded-xl shadow-xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 opacity-0 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {images.map((image, index) => (
                 <div key={index} className="flex flex-col">
-                  <div className="relative aspect-square border-4 border-gray-900 rounded-lg shadow-xl overflow-hidden bg-white">
-                    <img 
-                      src={image.url} 
-                      alt={`Panel ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  {isClient && (
+                    <div className="relative aspect-square border-4 border-gray-900 rounded-lg shadow-xl overflow-hidden bg-white">
+                      <img 
+                        src={image.url} 
+                        alt={`Panel ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="mt-4 bg-yellow-100 p-4 rounded-lg border-2 border-gray-900 shadow-md">
                     <p className="text-gray-900 text-center text-base font-medium">
                       {image.caption}
