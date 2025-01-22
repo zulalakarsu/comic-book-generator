@@ -18,24 +18,29 @@ interface ComicPanel {
 interface OpenAIResponse {
   choices: Array<{
     message: {
-      content: string;
+      content: string | null;
+      role: string;
     };
+    index: number;
+    finish_reason: string;
   }>;
 }
 
-interface ReplicateResponse {
-  [key: string]: string[]; // Adjust this based on the actual structure of the Replicate response
-}
+interface ReplicateResponse extends Array<string> {}
 
 async function fetchWithRetry<T>(fetchFunction: () => Promise<T>, retries: number = 3): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchFunction();
     } catch (error) {
-      if (i === retries - 1) throw error;
+      if (i === retries - 1) {
+        throw error;
+      }
       console.warn(`Retrying... (${i + 1}/${retries})`);
     }
   }
+
+  throw new Error('Max retries exceeded');
 }
 
 export async function POST(req: Request) {
@@ -69,11 +74,13 @@ export async function POST(req: Request) {
             }`
         },
         { role: "user", content: user_prompt }
-      ]
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
     }));
 
-    const content: string = response.choices[0]?.message?.content;
-    console.log("OpenAI Response:", content);
+    const content = response.choices[0]?.message?.content ?? null;
+    console.log("Raw OpenAI Response:", content);
 
     if (!content) {
       throw new Error("No content received from OpenAI");
@@ -81,28 +88,25 @@ export async function POST(req: Request) {
     
     let comicStory: { comics: ComicPanel[] };
     try {
-      comicStory = JSON.parse(content);
-      console.log("Comic Story:", comicStory);
+      comicStory = JSON.parse(content.trim());
+      console.log("Parsed Comic Story:", comicStory);
     } catch (err: unknown) {
-      console.error('Invalid JSON response from OpenAI:', content);
-      if (err instanceof Error) {
-        console.error('Error details:', err.message);
-      }
-      throw new Error('Invalid JSON response');
+      console.error('Failed to parse JSON. Raw content:', content);
+      throw new Error('Invalid JSON response from OpenAI');
     }
 
     const img_urls: { url: string; caption: string }[] = [];
 
     for (const panel of comicStory.comics) {
       try {
-        const output: ReplicateResponse = await replicate.run(
+        const output = await replicate.run(
           "sundai-club/pumkino:86402cac92141dd074aa6a12d8b197cafc50adf91a3625e42fd5c36dc33ed45e",
           { 
             input: {
               prompt: panel.prompt,
             }
           }
-        );
+        ) as string[];
 
         console.log("Replicate Response:", output);
 
