@@ -15,12 +15,24 @@ interface ComicPanel {
   caption: string;
 }
 
+interface OpenAIResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+interface ReplicateResponse {
+  [key: string]: any;
+}
+
 async function fetchWithRetry(fetchFunction: () => Promise<any>, retries: number = 3): Promise<any> {
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchFunction();
     } catch (error) {
-      if (i === retries - 1) throw error; // Rethrow the error if it's the last attempt
+      if (i === retries - 1) throw error;
       console.warn(`Retrying... (${i + 1}/${retries})`);
     }
   }
@@ -37,7 +49,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const response = await fetchWithRetry(() => openai.chat.completions.create({
+    const response: OpenAIResponse = await fetchWithRetry(() => openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
@@ -60,7 +72,7 @@ export async function POST(req: Request) {
       ]
     }));
 
-    const content = response.choices[0]?.message?.content;
+    const content: string = response.choices[0]?.message?.content;
     console.log("OpenAI Response:", content);
 
     if (!content) {
@@ -80,14 +92,14 @@ export async function POST(req: Request) {
 
     for (const panel of comicStory.comics) {
       try {
-        const output = await replicate.run(
+        const output: ReplicateResponse = await replicate.run(
           "sundai-club/pumkino:86402cac92141dd074aa6a12d8b197cafc50adf91a3625e42fd5c36dc33ed45e",
           { 
             input: {
               prompt: panel.prompt,
             }
           }
-        ) as string[];
+        );
 
         console.log("Replicate Response:", output);
 
@@ -96,7 +108,7 @@ export async function POST(req: Request) {
         }
 
         img_urls.push({
-          url: String(output[0]),  // Ensure URL is a string
+          url: String(output[0]),
           caption: panel.caption
         });
       } catch (err) {
