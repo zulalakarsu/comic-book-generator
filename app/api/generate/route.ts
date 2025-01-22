@@ -60,8 +60,9 @@ export async function POST(req: Request) {
     try {
       comicStory = JSON.parse(content);
       console.log("Comic Story:", comicStory);
-    } catch {
+    } catch (err) {
       console.error('Invalid JSON:', content);
+      console.error('Error parsing JSON:', err);
       throw new Error("Invalid JSON response from OpenAI");
     }
 
