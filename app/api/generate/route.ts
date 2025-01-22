@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server';
 import Replicate from "replicate";
 import OpenAI from 'openai';
+import { generateImages, ComicPanel } from "../utils";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GITHUB_TOKEN,
+  baseURL: "https://models.inference.ai.azure.com",
 });
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
-
-interface ComicPanel {
-  prompt: string;
-  caption: string;
-}
 
 interface OpenAIResponse {
   choices: Array<{
@@ -53,75 +50,34 @@ export async function POST(req: Request) {
     }
 
     const response: OpenAIResponse = await fetchWithRetry(() => openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a JSON generator. Return ONLY a valid JSON object with exactly 3 panels, using this structure:
-            {
-              "comics": [
-                {
-                  "prompt": "PUMKI the cat [scene description] cartoonish style, warm colors",
-                  "caption": "Pumpkino [action description]"
-                }
-              ]
-            }
-            Do not include any additional text, markdown, or explanation.`
+          content: 'Create a comic story with exactly 3 panels. Return only valid JSON matching this exact format: {"comics":[{"prompt":"PUMKI the cat [scene description] cartoonish style, warm colors","caption":"[A caption about Pumpkino]"}]}. Include exactly 3 objects in the comics array.'
         },
         { role: "user", content: user_prompt }
       ],
-      temperature: 0.5,
-      max_tokens: 1000
+      temperature: 0.7,
+      response_format: { type: "json_object" }
     }));
 
-    const content = response.choices[0]?.message?.content ?? null;
-    console.log("Raw OpenAI Response:", content);
+    const content = response.choices[0]?.message?.content;
+    if (!content) throw new Error("No content received from OpenAI");
 
-    if (!content) {
-      throw new Error("No content received from OpenAI");
-    }
+    const comicStory = JSON.parse(content.trim());
     
-    let comicStory: { comics: ComicPanel[] };
-    try {
-      comicStory = JSON.parse(content.trim());
-      console.log("Parsed Comic Story:", comicStory);
-    } catch {
-      console.error('Failed to parse JSON. Raw content:', content);
-      throw new Error('Invalid JSON response from OpenAI');
-    }
+    // Ensure the comicStory structure is correct
+    const comics = comicStory.comics.map((panel: ComicPanel) => ({
+      prompt: panel.prompt,
+      caption: panel.caption
+    }));
 
-    const img_urls: { url: string; caption: string }[] = [];
+    const img_urls = await generateImages(comics);
 
-    for (const panel of comicStory.comics) {
-      try {
-        const output = await replicate.run(
-          "sundai-club/pumkino:86402cac92141dd074aa6a12d8b197cafc50adf91a3625e42fd5c36dc33ed45e",
-          { 
-            input: {
-              prompt: panel.prompt,
-            }
-          }
-        ) as string[];
-
-        console.log("Replicate Response:", output);
-
-        if (!output?.[0]) {
-          throw new Error("No image generated");
-        }
-
-        img_urls.push({
-          url: String(output[0]),
-          caption: panel.caption
-        });
-      } catch (error: unknown) {
-        console.error('Error generating image:', error);
-        throw new Error("Failed to generate image");
-      }
-    }
-    
     return NextResponse.json({ 
       success: true,
-      img_urls: img_urls
+      img_urls 
     });
     
   } catch (error) {
