@@ -3,6 +3,8 @@
 ## Overview
 The Comic Story Generator is a web application that allows users to create a 3-panel comic story about a cat's adventure. The model was trained on images of a cat called 'Pumpkin'. Users can input a prompt, and the application utilizes OpenAI's GPT-4 model to generate the comic story, which is then illustrated using the Replicate API.
 
+link to project: https://comic-book-beta.vercel.app/
+
 <img width="1041" alt="Image" src="https://github.com/user-attachments/assets/4f66f80f-b47d-4365-9f62-513109cef572" />
 
 ## Features
