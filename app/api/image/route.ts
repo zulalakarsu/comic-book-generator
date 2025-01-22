@@ -10,9 +10,9 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { comics } = await req.json();
+    const { comics } = await request.json();
 
     if (!comics || !Array.isArray(comics)) {
       return NextResponse.json(
