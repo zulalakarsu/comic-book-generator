@@ -15,6 +15,17 @@ interface ComicPanel {
   caption: string;
 }
 
+async function fetchWithRetry(fetchFunction: () => Promise<any>, retries: number = 3): Promise<any> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetchFunction();
+    } catch (error) {
+      if (i === retries - 1) throw error; // Rethrow the error if it's the last attempt
+      console.warn(`Retrying... (${i + 1}/${retries})`);
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { user_prompt } = await req.json();
@@ -26,7 +37,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const response = await openai.chat.completions.create({
+    const response = await fetchWithRetry(() => openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
@@ -47,9 +58,8 @@ export async function POST(req: Request) {
         },
         { role: "user", content: user_prompt }
       ]
-    });
+    }));
 
-    console.log("Full OpenAI Response:", response);
     const content = response.choices[0]?.message?.content;
     console.log("OpenAI Response:", content);
 
@@ -62,9 +72,8 @@ export async function POST(req: Request) {
       comicStory = JSON.parse(content);
       console.log("Comic Story:", comicStory);
     } catch (err) {
-      console.error('Invalid JSON:', content);
-      console.error('Error parsing JSON:', err);
-      throw new Error(`Invalid JSON response from OpenAI: ${content}`);
+      console.error('Invalid JSON response from OpenAI:', content);
+      throw new Error('Invalid JSON response');
     }
 
     const img_urls = [];
@@ -80,6 +89,8 @@ export async function POST(req: Request) {
           }
         ) as string[];
 
+        console.log("Replicate Response:", output);
+
         if (!output?.[0]) {
           throw new Error("No image generated");
         }
@@ -88,7 +99,8 @@ export async function POST(req: Request) {
           url: String(output[0]),  // Ensure URL is a string
           caption: panel.caption
         });
-      } catch {
+      } catch (err) {
+        console.error('Error generating image:', err);
         throw new Error("Failed to generate image");
       }
     }
