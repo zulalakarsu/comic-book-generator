@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: 'Create a comic story with exactly 3 panels. Return only valid JSON matching this exact format: {"comics":[{"prompt":"PUMKI the cat [scene description] cartoonish style, warm colors","caption":"[A caption about Pumpkino]"}]}. Include exactly 3 objects in the comics array.'
+          content: 'Create a comic story with exactly 3 panels. Return only valid JSON matching this exact format: {"comics":[{"prompt":"PUMKI the cat [scene description] cartoonish style, warm colors","caption":"[A caption that refers to the cat as Pumpkino]"}]}. Include exactly 3 objects in the comics array.'
         },
         { role: "user", content: user_prompt }
       ],
