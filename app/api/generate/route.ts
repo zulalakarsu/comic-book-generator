@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       ]
     });
 
+    console.log("Full OpenAI Response:", response);
     const content = response.choices[0]?.message?.content;
     console.log("OpenAI Response:", content);
 
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error('Invalid JSON:', content);
       console.error('Error parsing JSON:', err);
-      throw new Error("Invalid JSON response from OpenAI");
+      throw new Error(`Invalid JSON response from OpenAI: ${content}`);
     }
 
     const img_urls = [];
