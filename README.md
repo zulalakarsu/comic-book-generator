@@ -5,7 +5,7 @@ The Comic Story Generator is a web application that allows users to create a 3-p
 
 link to project: https://comic-book-beta.vercel.app/
 
-<img width="946" alt="Image" src="https://github.com/user-attachments/assets/49f99ade-d222-4d23-b618-f4055d20dc66" />
+<img width="955" alt="Image" src="https://github.com/user-attachments/assets/edb2a824-2c7a-4b23-8265-83d4b8d52ec1" />
 
 ## Features
 - User-friendly interface for inputting prompts.
