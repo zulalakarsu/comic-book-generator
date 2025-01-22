@@ -50,6 +50,8 @@ export async function POST(req: Request) {
     });
 
     const content = response.choices[0]?.message?.content;
+    console.log("OpenAI Response:", content);
+
     if (!content) {
       throw new Error("No content received from OpenAI");
     }
@@ -57,7 +59,9 @@ export async function POST(req: Request) {
     let comicStory: { comics: ComicPanel[] };
     try {
       comicStory = JSON.parse(content);
-    } catch {
+      console.log("Comic Story:", comicStory);
+    } catch (err) {
+      console.error('Invalid JSON:', content);
       throw new Error("Invalid JSON response from OpenAI");
     }
 
